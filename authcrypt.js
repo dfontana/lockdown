@@ -11,14 +11,12 @@ const cfg = {
 
 function hash(password, slt) {
   const salt = slt ? slt : crypto.randomBytes(cfg.saltB)
-  const hash = crypto.pbkdf2Sync(Buffer.from(password, 'utf8'), salt, cfg.iter, cfg.hashB, 'sha512')
+  const hash = crypto.pbkdf2Sync(password, salt, cfg.iter, cfg.hashB, 'sha512')
   return Buffer.concat([salt, hash])
 }
 
 module.exports = {
-  encrypt: (text, passwd) => {
-    text = Buffer.from(text, 'utf8')
-
+  encrypt: (rawBuff, passwd) => {
     // Hash, splitting salt and key.
     const hashed = hash(passwd)
     const salt = hashed.slice(0, cfg.saltB)
@@ -27,27 +25,26 @@ module.exports = {
     // Generate an IV and encrypt using hashed password as key.
     const iv = crypto.randomBytes(cfg.ivB)
     const cipher = crypto.createCipheriv(cfg.alg, key, iv)
-    const coded = Buffer.concat([cipher.update(text), cipher.final()])
+    const coded = Buffer.concat([cipher.update(rawBuff), cipher.final()])
     const tag = cipher.getAuthTag()
-    return Buffer.concat([salt, iv, tag, coded]).toString('base64')
+    return Buffer.concat([salt, iv, tag, coded])
   },
 
-  decrypt: (encrypted, passwd) => {
-    const file = Buffer.from(encrypted, 'base64')
-    
+  decrypt: (rawBuff, passwd) => {
+
     // Break buffer into parts
-    const salt = file.slice(0, cfg.saltB)
-    const iv = file.slice(cfg.saltB, cfg.saltB+cfg.ivB)
-    const tag = file.slice(cfg.saltB+cfg.ivB, cfg.saltB+cfg.ivB+cfg.tagB)
-    const contents = file.slice(cfg.saltB+cfg.ivB+cfg.tagB)
+    const salt = rawBuff.slice(0, cfg.saltB)
+    const iv = rawBuff.slice(cfg.saltB, cfg.saltB+cfg.ivB)
+    const tag = rawBuff.slice(cfg.saltB+cfg.ivB, cfg.saltB+cfg.ivB+cfg.tagB)
+    const contents = rawBuff.slice(cfg.saltB+cfg.ivB+cfg.tagB)
   
-    // Hash the passwd, but use the file's salt
+    // Hash the passwd, but use the rawBuff's salt
     const hashed = hash(passwd, salt)
     const key = hashed.slice(cfg.saltB)
   
     // Using the given information, decrypt the buffer.
     const decipher = crypto.createDecipheriv(cfg.alg, key, iv)
     decipher.setAuthTag(tag)
-    return Buffer.concat([decipher.update(contents), decipher.final()]).toString("utf8")
+    return Buffer.concat([decipher.update(contents), decipher.final()])
   }
 }
