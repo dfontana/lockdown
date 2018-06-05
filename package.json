@@ -1,0 +1,11 @@
+{
+  "name": "lock",
+  "version": "1.0.0",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.15.1"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}
