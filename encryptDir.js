@@ -18,38 +18,21 @@ let walkDir = async (dir, cb) => {
   })
 }
 
-function encryptFile(f) {
+function toggleFile(f) {
+  const unlock = path.extname(f) === '.cpt' ? true : false;
   fs.readFile(f)
     .then(buff => {
-      try {
-        let content = JSON.parse(buff);
-        if('iv' in content && 'content' in content && 'tag' in content) {
-          content.iv = Buffer.from(content.iv)
-          content.tag = Buffer.from(content.tag)
-          console.info(`Decrypting ${f}...`);
-          try{
-            let decryption = decrypt(content, hash(process.argv[3]))
-            fs.writeFile(f, JSON.stringify(decryption));
-          }catch(err){
-            console.log(err)
-          }
-        }
-      }catch(err) {
-        console.info(`Encrypting ${f}...`);
-        let encryption = encrypt(buff, hash(process.argv[3]))
-        fs.writeFile(f, JSON.stringify(encryption));
+      if(unlock){
+        buff = buff.toString('utf8')
+        const file = Crypt.decrypt(buff, process.argv[3])
+        fs.writeFile(f.slice(0, -4), file);
+        fs.unlink(f);
+      }else{
+        const file = Crypt.encrypt(buff, process.argv[3])
+        fs.writeFile(f + '.cpt', file);
+        fs.unlink(f);
       }
     });
 }
 
-function test(f) {
-  fs.readFile(f)
-    .then(buff => {
-      let encryption = Crypt.encrypt(buff, process.argv[3])
-      console.log(encryption)
-      let decryption = Crypt.decrypt(encryption, process.argv[3])
-      console.log(decryption)
-    });
-}
-
-walkDir(process.argv[2], test)
+walkDir(process.argv[2], toggleFile)

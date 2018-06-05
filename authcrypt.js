@@ -11,12 +11,14 @@ const cfg = {
 
 function hash(password, slt) {
   const salt = slt ? slt : crypto.randomBytes(cfg.saltB)
-  const hash = crypto.pbkdf2Sync(password, salt, cfg.iter, cfg.hashB, 'sha512')
+  const hash = crypto.pbkdf2Sync(Buffer.from(password, 'utf8'), salt, cfg.iter, cfg.hashB, 'sha512')
   return Buffer.concat([salt, hash])
 }
 
 module.exports = {
   encrypt: (text, passwd) => {
+    text = Buffer.from(text, 'utf8')
+
     // Hash, splitting salt and key.
     const hashed = hash(passwd)
     const salt = hashed.slice(0, cfg.saltB)
@@ -25,7 +27,7 @@ module.exports = {
     // Generate an IV and encrypt using hashed password as key.
     const iv = crypto.randomBytes(cfg.ivB)
     const cipher = crypto.createCipheriv(cfg.alg, key, iv)
-    const coded = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
+    const coded = Buffer.concat([cipher.update(text), cipher.final()])
     const tag = cipher.getAuthTag()
     return Buffer.concat([salt, iv, tag, coded]).toString('base64')
   },
@@ -46,6 +48,6 @@ module.exports = {
     // Using the given information, decrypt the buffer.
     const decipher = crypto.createDecipheriv(cfg.alg, key, iv)
     decipher.setAuthTag(tag)
-    return decipher.update(contents, 'binary', 'utf8') + decipher.final('utf8')
+    return Buffer.concat([decipher.update(contents), decipher.final()]).toString("utf8")
   }
 }
