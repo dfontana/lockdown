@@ -1,54 +1,79 @@
 const fs = require('fs').promises
 const path = require('path')
 const Crypt = require('./authcrypt')
+const ProgressBar = require('./progress')
 
-let walkDir = async (dir, cb) => {
-  let files = await fs.readdir(dir);
+// Accumulates all non-hidden file paths from a directory
+async function walkDir(dir, acc) {
+  let files = await fs.readdir(dir)
+
   // Remove hidden files
   files = files.filter(item => !(/((^|\/)\.\w+$)/g).test(item));
-  files.map(async f => {
-    let next = path.join(dir, f);
-    let stats = await fs.stat(next);
+
+  for(let i = 0; i<files.length; i++) {
+    const next = path.join(dir, files[i]);
+    const stats = await fs.stat(next);
     if(stats.isDirectory()) {
-      walkDir(next, cb);
+      acc.push(walkDir(next, acc));
     } else {
-      cb(next);
+      acc.push(next)
     }
-  })
+  }
+
+  return acc;
 }
 
-function toggleFile(f) {
+async function toggleFile(f, passwd, update) {
   const unlock = path.extname(f) === '.cpt' ? true : false;
+  let file = null;
   fs.readFile(f)
     .then(buff => {
       if(unlock){
-        const file = Crypt.decrypt(buff, process.argv[3])
-        fs.writeFile(f.slice(0, -4), file);
-        fs.unlink(f);
+        file = Crypt.decrypt(buff, passwd)
+        return f.slice(0, -4);
       }else{
-        const file = Crypt.encrypt(buff, process.argv[3])
-        fs.writeFile(f + '.cpt', file);
-        fs.unlink(f);
+        file = Crypt.encrypt(buff, passwd)
+        return f + '.cpt'
       }
     })
+    .then(filename => fs.writeFile(filename, file))
+    .then(() => fs.unlink(f))
+    .then(update)
 }
 
-let run = async (dir, cb) => {
+async function run(dir, direction) {
   // Fix path from relative to abs.
   if(!path.isAbsolute(dir)) {
     dir = path.join(process.cwd(), dir)
   }
 
-  // Check if the path is a file or directory
-  let stats = await fs.stat(dir);
-  if(!stats.isDirectory()) {
-    cb(dir)
-  }else{
-    walkDir(dir, cb)
+  // Gather list of files to encrypt
+  const stats = await fs.stat(dir)
+  const files = stats.isDirectory() ? await walkDir(dir, []) : [dir];
+
+  // Setup progress bar
+  const Bar = new ProgressBar();
+  let totalProgress = 0;
+  let text = 'Encrypting...'
+  Bar.init(files.length, text);
+  function update() {
+    Bar.update(++totalProgress);
   }
+
+  // Hash the password once & pass to cb
+  const passwd = 
+
+  // Operate on all your promises.
+  await Promise.all(files.map(f => cb(f, passwd, update)))
 }
 
-run(process.argv[2], toggleFile)
-  .catch(err => {
-    console.error(err);
-  })
+async function validateInput() {
+  if(process.arg)
+  process.argv[2], process.argv[]
+}
+
+validateInput()
+  .then(run)
+  .catch(console.error)
+run()
+  .catch(console.error)
