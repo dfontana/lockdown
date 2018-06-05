@@ -4,6 +4,8 @@ const Crypt = require('./authcrypt')
 
 let walkDir = async (dir, cb) => {
   let files = await fs.readdir(dir);
+  // Remove hidden files
+  files = files.filter(item => !(/((^|\/)\.\w+$)/g).test(item));
   files.map(async f => {
     let next = path.join(dir, f);
     let stats = await fs.stat(next);
