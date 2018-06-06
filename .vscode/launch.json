@@ -15,7 +15,7 @@
       },
       "args":[
         "d",
-        "test",
+        "test/test1.txt",
         "testing"
       ]
     }

@@ -7,42 +7,31 @@ const ProgressBar = require('./progress')
 const FILETYPE = '.cpt'
 
 /**
- * Walks the given directory recursively adding file paths to the given array.
+ * Walks the given path recursively adding files to the given array.
  * If encrypting is true, then only files of type FILETYPE are added to this
  * array, otherwise only files not of FILETYPE are added.
- * @param {String} dir Path to directory being walked
+ * @param {String} fpath Path being walked
  * @param {Boolean} encrypting Whether we should be grabbing only encrypted 
  *  or non-encrypted files
  * @param {Array} acc Array to add found file paths to.
  */
-async function walkDir(dir, encrypting, acc) {
-  // Stat dir. If its a file, push and return. Else continue.
-  // const stats = await fs.stat(dir);
-  // if(!stats.isDirectory()) {
-  //   acc.push(dir)
-  //   return;
-  // }
-
-  // Get files that are not hidden and fulfuill encrypting requirement
-  let files = await fs.readdir(dir)
-  files = files.map(f => path.join(dir, f))
-  files = files.filter(async item => {
-    let hidden = (/((^|\/)\.\w+$)/g).test(item)
-    let isFILETYPE = path.extname(item) === FILETYPE
-    let stats = await fs.stat(item)
-    if(stats.isDirectory()) { return true; }
-    return encrypting ? (!isFILETYPE && !hidden) : (isFILETYPE && !hidden)
-  });
-
-  // Explore each file in current directory
-  for(let i = 0; i<files.length; i++) {
-    // const next = path.join(dir, files[i]);
-    // acc.push(walkDir(next, encrypting, acc));
-    const stats = await fs.stat(files[i]);
-    if(stats.isDirectory()) {
-      acc = await walkDir(files[i], encrypting, acc);
-    } else {
-      acc.push(files[i])
+async function walkDir(fpath, encrypting, acc) {
+  let stats = await fs.stat(fpath)
+  if(stats.isDirectory()) {
+    // Path is a directory, explore its contents
+    let files = await fs.readdir(fpath)
+    for(let i = 0; i < files.length; i++) {
+      let f = path.join(fpath, files[i])
+      acc = await walkDir(f, encrypting, acc)
+    }
+  }else{
+    // Path is a file, determine if it should be added to list
+    let hidden = (/((^|\/)\.\w+$)/g).test(fpath)
+    let isFILETYPE = path.extname(fpath) === FILETYPE
+    let shouldDecrypt = (!encrypting && isFILETYPE && !hidden)
+    let shouldEncrypt = (encrypting && !isFILETYPE && !hidden)
+    if(shouldDecrypt || shouldEncrypt){
+      acc.push(fpath)
     }
   }
   return acc;
@@ -63,16 +52,17 @@ async function transformFile(f, op, update) {
     .then(update)
 }
 
+/**
+ * Obtains a list of files found in the tree starting at dir. Files are only
+ * returned if they meet the encrypting/decrypting criteria.
+ * @param {String} dir File to encrypt (can be a file or directory)
+ * @param {Boolean} encrypting Whether we are encrypting or decrypting
+ */
 async function getFiles(dir, encrypting) {
   if(!path.isAbsolute(dir)) {
     dir = path.join(process.cwd(), dir)
   }
-  const stats = await fs.stat(dir)
-  if (stats.isDirectory()){
-    return await walkDir(dir, encrypting, [])
-  }else{
-    return [dir];
-  }
+  return await walkDir(dir, encrypting, []);
 }
 
 function cipherDir(op) {
