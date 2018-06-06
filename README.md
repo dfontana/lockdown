@@ -3,8 +3,8 @@ A simple CLI tool to encrypt files with AES-256 Authentication.
 
 ## TODO: Short term
 - [ ] Add test cases...
-- [ ] Prompt for password to prevent it being leaked into bash history, etc.
-- [ ] Organize project files into folders
+- [x] Prompt for password to prevent it being leaked into bash history, etc.
+- [x] Organize project files into folders
 - [ ] Create file server, allowing files to exist elsewhere on localnet.
  - Does encrption/decryption occur locally or on server, then?
  - How to ensure file transfer isn't compromised? (SSL?)
