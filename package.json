@@ -1,6 +1,9 @@
 {
-  "name": "lock",
+  "name": "lockdown",
   "version": "1.0.0",
+  "main": "lockdown.js",
+  "preferGlobal": true,
+  "bin": "./lockdown.js",
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.15.1"
