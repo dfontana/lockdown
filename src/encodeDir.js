@@ -7,6 +7,19 @@ const ProgressBar = require('./progress')
 const FILETYPE = '.cpt'
 
 /**
+ * Obtains a list of files found in the tree starting at dir. Files are only
+ * returned if they meet the encrypting/decrypting criteria.
+ * @param {String} dir File to encrypt (can be a file or directory)
+ * @param {Boolean} encrypting Whether we are encrypting or decrypting
+ */
+async function getFiles(dir, encrypting) {
+  if(!path.isAbsolute(dir)) {
+    dir = path.join(process.cwd(), dir)
+  }
+  return await walkDir(dir, encrypting, []);
+}
+
+/**
  * Walks the given path recursively adding files to the given array.
  * If encrypting is true, then only files of type FILETYPE are added to this
  * array, otherwise only files not of FILETYPE are added.
@@ -37,6 +50,7 @@ async function walkDir(fpath, encrypting, acc) {
   return acc;
 }
 
+
 /**
  * Reads the given file, performing the given operation, and then replacing that
  * file on disk with the transformed file.
@@ -44,48 +58,30 @@ async function walkDir(fpath, encrypting, acc) {
  * @param {Function} op Operation ot perform on the read buffer, before write
  * @param {Function} update Function to call after overwrite is complete
  */
-async function transformFile(f, op, update) {
-  fs.readFile(f)
+function transformFile(f, op, update) {
+  return fs.readFile(f)
     .then(buff => op(buff, f))
     .then(args => fs.writeFile(...args))
     .then(() => fs.unlink(f))
     .then(update)
 }
 
-/**
- * Obtains a list of files found in the tree starting at dir. Files are only
- * returned if they meet the encrypting/decrypting criteria.
- * @param {String} dir File to encrypt (can be a file or directory)
- * @param {Boolean} encrypting Whether we are encrypting or decrypting
- */
-async function getFiles(dir, encrypting) {
-  if(!path.isAbsolute(dir)) {
-    dir = path.join(process.cwd(), dir)
-  }
-  return await walkDir(dir, encrypting, []);
-}
-
-function cipherDir(op) {
+function cipherDir(encrypting, op) {
   return async function(dir, passwd) {
-    const ENCRYPTING = op.name === 'encryptOp';
 
     // Status Bar
     const Bar = new ProgressBar();
-    let totalProgress = 0;
-    async function update(){
-      Bar.update(++totalProgress);
-    }
-    let text = `   ${ ENCRYPTING ? 'Encrypting' : 'Decrypting'}`
+    let text = `   ${ encrypting ? 'Encrypting' : 'Decrypting'}`
 
     // Ciphering files
     try {
-      const files = await getFiles(dir, ENCRYPTING)
+      const files = await getFiles(dir, encrypting)
       if(files.length === 0) {
-        throw `No files to ${op.name.slice(0,7)}`
+        throw `No files to ${text.slice(3,10)}`
       }
       Bar.init(files.length, chalk.cyan(text));
       await Promise.all(files.map(f => {
-        return transformFile(f, op(passwd), update)
+        return transformFile(f, op(passwd), async ()=>Bar.add(1))
       }))
     } catch(err) {
       console.error(chalk.red(err))
@@ -93,19 +89,12 @@ function cipherDir(op) {
   }
 }
 
-function encryptOp(passwd) {
-  return async function(buff, f) {
-    return [f + FILETYPE, Crypt.encrypt(buff, passwd)]
-  }
-}
-
-function decryptOp(passwd) {
-  return async function(buff, f) {
-    return [f.slice(0, -4), Crypt.decrypt(buff, passwd)]
-  }
-}
 
 module.exports = { 
-  encryptDir: cipherDir(encryptOp),
-  decryptDir: cipherDir(decryptOp)
+  encryptDir: cipherDir(true, (passwd) => function(buff, f) {
+    return [f + FILETYPE, Crypt.encrypt(buff, passwd)]
+  }),
+  decryptDir: cipherDir(false, (passwd) => function(buff, f) {
+    return [f.slice(0, -4), Crypt.decrypt(buff, passwd)]
+  })
 }
