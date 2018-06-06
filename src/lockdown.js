@@ -1,7 +1,7 @@
 #!/usr/bin/env node --no-warnings
 
 const program = require('commander');
-const { prompt } = require('inquirer');
+const prompt = require('./hiddenInput')
 const chalk = require('chalk')
 const { encryptDir, decryptDir } = require('./encodeDir');
 
@@ -18,7 +18,7 @@ program
     if(options.passwd) {
       encryptDir(directory, options.passwd);
     } else {
-      prompt([{type: 'password', name:'passwd', message:'Password: '}])
+      prompt("Password: ")
       .then(ans => {
         encryptDir(directory, ans.passwd);
       })
@@ -34,7 +34,7 @@ program
     if(options.passwd) {
       decryptDir(directory, options.passwd);
     } else {
-      prompt([{type: 'password', name:'passwd', message:'Password: '}])
+      prompt("Password: ")
       .then(ans => {
         decryptDir(directory, ans.passwd);
       })
