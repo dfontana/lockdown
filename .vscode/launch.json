@@ -14,8 +14,9 @@
         "useWSL": true,
       },
       "args":[
-        "d",
-        "test/test1.txt",
+        "e",
+        "test",
+        "-p",
         "testing"
       ]
     }

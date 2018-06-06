@@ -1,6 +1,7 @@
 #!/usr/bin/env node --no-warnings
 
 const program = require('commander');
+const { prompt } = require('inquirer');
 const chalk = require('chalk')
 const { encryptDir, decryptDir } = require('./encodeDir');
 
@@ -9,19 +10,35 @@ program
   .description('Lockdown File Valut System');
 
 program
-  .command('encrypt <directory> <password>')
+  .command('encrypt <directory>')
   .alias('e')
-  .description('AES256-Auth encrypts directory (or file) with password')
-  .action((directory, password) => {
-    encryptDir(directory, password);
+  .option('-p, --passwd <passwd>', 'Debug usage only.')
+  .description('AES256-Auth encrypts directory (or file)')
+  .action((directory, options) => {
+    if(options.passwd) {
+      encryptDir(directory, options.passwd);
+    } else {
+      prompt([{type: 'password', name:'passwd', message:'Password: '}])
+      .then(ans => {
+        encryptDir(directory, ans.passwd);
+      })
+    }
   });
 
 program
-  .command('decrypt <directory> <password>')
+  .command('decrypt <directory>')
   .alias('d')
-  .description('Decrypts directory (or file) with password.')
-  .action((directory, password) => {
-    decryptDir(directory, password);
+  .option('-p, --passwd <passwd>', 'Debug usage only.')
+  .description('Decrypts directory (or file)')
+  .action((directory, options) => {
+    if(options.passwd) {
+      decryptDir(directory, options.passwd);
+    } else {
+      prompt([{type: 'password', name:'passwd', message:'Password: '}])
+      .then(ans => {
+        decryptDir(directory, ans.passwd);
+      })
+    }
   });
 
 program.on('command:*', function () {
