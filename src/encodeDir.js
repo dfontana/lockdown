@@ -77,14 +77,14 @@ function cipherDir(encrypting, op) {
     try {
       const files = await getFiles(dir, encrypting)
       if(files.length === 0) {
-        throw `No files to ${text.slice(3,10)}`
+        throw `   No files to ${text.slice(3,10)}`
       }
       Bar.init(files.length, chalk.cyan(text));
       await Promise.all(files.map(f => {
         return transformFile(f, op(passwd), async ()=>Bar.add(1))
       }))
     } catch(err) {
-      console.error(chalk.red(err))
+      console.error("   "+chalk.red(err))
     }
   }
 }

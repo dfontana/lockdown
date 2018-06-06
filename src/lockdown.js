@@ -18,7 +18,7 @@ program
     if(options.passwd) {
       encryptDir(directory, options.passwd);
     } else {
-      prompt("Password: ")
+      prompt("   Password: ")
       .then(ans => {
         encryptDir(directory, ans);
       })
@@ -34,7 +34,7 @@ program
     if(options.passwd) {
       decryptDir(directory, options.passwd);
     } else {
-      prompt("Password: ")
+      prompt("   Password: ")
       .then(ans => {
         decryptDir(directory, ans);
       })

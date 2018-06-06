@@ -15,7 +15,7 @@ rl._writeToOutput = function _writeToOutput(stringToWrite) {
 };
 
 module.exports = function(prompt) {
-  query = prompt
+  rl.query = prompt
   return new Promise((res, rej) => {
     rl.question(rl.query, (passwd) => {
       rl.output.write('\n')
