@@ -8,7 +8,16 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${workspaceFolder}/auth_crypto.js"
+      "program": "${workspaceFolder}/src/lockdown.js",
+      "cwd": "${workspaceFolder}",
+      "windows": {
+        "useWSL": true,
+      },
+      "args":[
+        "d",
+        "test",
+        "testing"
+      ]
     }
   ]
 }
