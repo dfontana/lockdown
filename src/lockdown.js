@@ -20,7 +20,7 @@ program
     } else {
       prompt("Password: ")
       .then(ans => {
-        encryptDir(directory, ans.passwd);
+        encryptDir(directory, ans);
       })
     }
   });
@@ -36,7 +36,7 @@ program
     } else {
       prompt("Password: ")
       .then(ans => {
-        decryptDir(directory, ans.passwd);
+        decryptDir(directory, ans);
       })
     }
   });

@@ -18,6 +18,7 @@ module.exports = function(prompt) {
   query = prompt
   return new Promise((res, rej) => {
     rl.question(rl.query, (passwd) => {
+      rl.output.write('\n')
       rl.close()
       res(passwd)
     });

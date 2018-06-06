@@ -31,12 +31,12 @@ module.exports = class ProgressBar {
 
 		const filled_bar = this.get_bar(filled_bar_length, "■", cyan);
 		const empty_bar = this.get_bar(empty_bar_length, "□");
-		const percentage_progress = (current_progress * 100).toFixed(0).padStart(3);
+		const percentage = (current_progress * 100).toFixed(0).padStart(3);
 
 		process.stdout.clearLine();
 		process.stdout.cursorTo(0);
 		process.stdout.write(
-			`${this.text}|${filled_bar}${empty_bar}|${percentage_progress}%`
+			`${this.text}|${filled_bar}${empty_bar}|${percentage}% ${percentage === "100" ? "\n" : ""}`
 		);
 	}
 
