@@ -4,11 +4,12 @@
   "main": "lockdown.js",
   "preferGlobal": true,
   "bin": "./lockdown.js",
+  "repository": "git@github.com:dfontana/lockdown.git",
+  "author": "Dylan Fontana <dyfontana@gmail.com>",
+  "license": "MIT",
+  "private": false,
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.15.1"
-  },
-  "devDependencies": {},
-  "author": "",
-  "license": "ISC"
+  }
 }
