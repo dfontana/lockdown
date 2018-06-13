@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "main": "dist/lockdown.js",
   "preferGlobal": true,
-  "bin": "./dist/lockdown.js",
+  "bin": {
+    "lockdown": "./dist/lockdown.min.js"
+  },
   "files": [
     "dist"
   ],
+  "scripts": {
+    "build": "rimraf dist && tsc && uglifyjs --ecma 8 -c -m -o ./dist/lockdown.min.js ./dist/*.js && rimraf dist/bundle.js"
+  },
   "repository": "git@github.com:dfontana/lockdown.git",
   "author": "Dylan Fontana <dyfontana@gmail.com>",
   "license": "MIT",
@@ -16,6 +21,9 @@
     "commander": "^2.15.1"
   },
   "devDependencies": {
-    "@types/node": "^10.3.2"
+    "@types/node": "^10.3.2",
+    "rimraf": "^2.6.2",
+    "typescript": "^2.9.1",
+    "uglify-es": "^3.3.9"
   }
 }

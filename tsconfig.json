@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "./dist/",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    // "outDir": "./dist/",
+    "outFile": "./dist/bundle.js",
+    "module": "amd",
+    // "moduleResolution": "node",
     "target": "ES2017",
-    "strict": true,
     "noImplicitAny": false,
     "noImplicitThis": true,
     "removeComments": true,
     "typeRoots": [
       "./node_modules/@types"
     ],
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "chalk": ["node_modules/chalk/index.js"],
+      "commander": ["node_modules/commander/index.js"]
+    }
   }
 }
