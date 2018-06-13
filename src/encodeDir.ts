@@ -1,18 +1,18 @@
-const fs = require('./filesystem')
-const chalk = require('chalk')
-const path = require('path')
-const Crypt = require('./encryption')
-const ProgressBar = require('./progress')
+import fs from './filesystem'
+import Chalk from 'chalk'
+import * as path from 'path'
+import {encrypt, decrypt} from './encryption'
+import ProgressBar from './progress'
 
 const FILETYPE = '.cpt'
 
 /**
  * Obtains a list of files found in the tree starting at dir. Files are only
  * returned if they meet the encrypting/decrypting criteria.
- * @param {String} dir File to encrypt (can be a file or directory)
- * @param {Boolean} encrypting Whether we are encrypting or decrypting
+ * @param dir File to encrypt (can be a file or directory)
+ * @param encrypting Whether we are encrypting or decrypting
  */
-async function getFiles(dir, encrypting) {
+async function getFiles(dir: string, encrypting: boolean) {
   if(!path.isAbsolute(dir)) {
     dir = path.join(process.cwd(), dir)
   }
@@ -23,12 +23,12 @@ async function getFiles(dir, encrypting) {
  * Walks the given path recursively adding files to the given array.
  * If encrypting is true, then only files of type FILETYPE are added to this
  * array, otherwise only files not of FILETYPE are added.
- * @param {String} fpath Path being walked
- * @param {Boolean} encrypting Whether we should be grabbing only encrypted 
+ * @param fpath Path being walked
+ * @param encrypting Whether we should be grabbing only encrypted 
  *  or non-encrypted files
- * @param {Array} acc Array to add found file paths to.
+ * @param acc Array to add found file paths to.
  */
-async function walkDir(fpath, encrypting, acc) {
+async function walkDir(fpath: string, encrypting: boolean, acc: string[]): Promise<string[]> {
   let stats = await fs.stat(fpath)
   if(stats.isDirectory()) {
     // Path is a directory, explore its contents
@@ -54,11 +54,11 @@ async function walkDir(fpath, encrypting, acc) {
 /**
  * Reads the given file, performing the given operation, and then replacing that
  * file on disk with the transformed file.
- * @param {String} f Path to file on disk
- * @param {Function} op Operation ot perform on the read buffer, before write
- * @param {Function} update Function to call after overwrite is complete
+ * @param f Path to file on disk
+ * @param op Operation ot perform on the read buffer, before write
+ * @param update Function to call after overwrite is complete
  */
-function transformFile(f, op, update) {
+function transformFile(f: string, op: Function, update: Function): Promise<void> {
   return fs.readFile(f)
     .then(buff => op(buff, f))
     .then(args => fs.writeFile(...args))
@@ -66,7 +66,7 @@ function transformFile(f, op, update) {
     .then(update)
 }
 
-function cipherDir(encrypting, op) {
+function cipherDir(encrypting: boolean, op: Function): Function {
   return async function(dir, passwd) {
 
     // Status Bar
@@ -79,22 +79,20 @@ function cipherDir(encrypting, op) {
       if(files.length === 0) {
         throw `   No files to ${text.slice(3,10)}`
       }
-      Bar.init(files.length, chalk.cyan(text));
+      Bar.init(files.length, Chalk.cyan(text));
       await Promise.all(files.map(f => {
         return transformFile(f, op(passwd), async ()=>Bar.add(1))
       }))
     } catch(err) {
-      console.error("   "+chalk.red(err))
+      console.error("   "+Chalk.red(err))
     }
   }
 }
 
+export const encryptDir = cipherDir(true, (passwd) => function(buff, f) {
+  return [f + FILETYPE, encrypt(buff, passwd)]
+})
 
-module.exports = { 
-  encryptDir: cipherDir(true, (passwd) => function(buff, f) {
-    return [f + FILETYPE, Crypt.encrypt(buff, passwd)]
-  }),
-  decryptDir: cipherDir(false, (passwd) => function(buff, f) {
-    return [f.slice(0, -4), Crypt.decrypt(buff, passwd)]
-  })
-}
+export const decryptDir = cipherDir(false, (passwd) => function(buff, f) {
+  return [f.slice(0, -4), decrypt(buff, passwd)]
+})

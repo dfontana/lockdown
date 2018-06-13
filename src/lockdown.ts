@@ -1,13 +1,13 @@
 #!/usr/bin/env node --no-warnings
 
-const program = require('commander');
-const prompt = require('./hiddenInput')
-const chalk = require('chalk')
-const { encryptDir, decryptDir } = require('./encodeDir');
+import * as program from 'commander'
+import prompt from './hiddenInput'
+import chalk from 'chalk'
+import { encryptDir, decryptDir } from './encodeDir'
 
 program
   .version('0.0.1')
-  .description('Lockdown File Valut System');
+  .description('Lockdown File Vault System');
 
 program
   .command('encrypt <directory>')
@@ -49,6 +49,7 @@ program.on('command:*', function () {
 
 if (!process.argv.slice(2).length) {
   program.outputHelp();
+  process.exit(0);
 }else{
   program.parse(process.argv);
 }

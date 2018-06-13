@@ -3,7 +3,7 @@
  * that do not have the experiemental promise API for FS.
  * Only exposes the necessary operations in this package.
  */
-const { promisify } = require ('util')
+import { promisify } from 'util'
 let fs = require('fs').promises
 
 if(fs === undefined) {
@@ -17,7 +17,7 @@ if(fs === undefined) {
   fs.unlink = promisify(fs.unlink)
 }
 
-module.exports = {
+export default {
   stat: fs.stat,
   readdir: fs.readdir,
   writeFile: fs.writeFile,

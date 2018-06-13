@@ -1,3 +1,9 @@
 {
-  "eslint.packageManager": "yarn"
+  "eslint.packageManager": "yarn",
+  "spellright.language": "en",
+  "spellright.documentTypes": [
+    "markdown",
+    "latex",
+    "plaintext"
+  ]
 }

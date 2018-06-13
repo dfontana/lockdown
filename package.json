@@ -1,9 +1,12 @@
 {
   "name": "lockdown",
   "version": "1.0.0",
-  "main": "lockdown.js",
+  "main": "dist/lockdown.js",
   "preferGlobal": true,
-  "bin": "./lockdown.js",
+  "bin": "./dist/lockdown.js",
+  "files": [
+    "dist"
+  ],
   "repository": "git@github.com:dfontana/lockdown.git",
   "author": "Dylan Fontana <dyfontana@gmail.com>",
   "license": "MIT",
@@ -11,5 +14,8 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^10.3.2"
   }
 }
